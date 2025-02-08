@@ -6,13 +6,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.Callable;
 
-public record Connect(String address, int timeout, String arg) implements Callable<Result> {
+public record Connect(String address, int port, int timeout, String arg) implements Callable<Result> {
     @Override
     public Result call() {
         return switch (arg) {
             case "ip" -> {
                 try (Socket socket = new Socket()) {
-                    InetSocketAddress inetSocketAddress = new InetSocketAddress(address, 7);
+                    InetSocketAddress inetSocketAddress = new InetSocketAddress(address, port);
                     long currentTimeMillis = System.currentTimeMillis();
                     socket.connect(inetSocketAddress, timeout);
                     currentTimeMillis = System.currentTimeMillis() - currentTimeMillis;

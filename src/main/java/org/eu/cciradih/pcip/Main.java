@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -40,7 +41,8 @@ public class Main {
                         .getContent();
                 List<String> cidrNotationList = new BufferedReader(new InputStreamReader(inputStream)).lines()
                         .toList();
-                System.out.println("CIDR notation list size: " + cidrNotationList.size());
+
+                System.out.printf("CIDR notation list : %d : %s\n", cidrNotationList.size(), cidrNotationList);
 
                 yield cidrNotationList.stream()
                         .flatMap(cidrNotation -> Arrays.stream(new SubnetUtils(cidrNotation)
@@ -67,7 +69,7 @@ public class Main {
         //  使用虚拟线程。
         ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
         List<Future<Result>> futureList = addressList.stream()
-                .map(address -> executorService.submit(new Connect(address, timeout, arg)))
+                .map(address -> executorService.submit(new Connect(address, 443, timeout, arg)))
                 .toList();
 
         //  开启基于 CPU 核心数的信号量限流，获取结果集。
@@ -101,42 +103,50 @@ public class Main {
                 .toList();
         executorService.close();
 
+        System.out.println("resultList size: " + resultList.size());
+
         //  输出延迟最低的 5 个 IP。
         resultList.stream()
                 .limit(5)
                 .forEach(result -> System.out.println("Address: " + result.getAddress() + ", millisecond: " +
                         result.getMillisecond() + "ms."));
 
-        //  拆分结果，每 1_000_000 一张表，XLS 支持 65_536 行和 256 列，XLSX 支持 1_048_576 行和 16_384 列。
-        List<List<Result>> partitionResultList = ListUtils.partition(resultList, 1_000_000);
+        StringBuilder builder = new StringBuilder();
+        resultList.stream().limit(10).forEach(t -> builder.append(t).append("\n"));
+        System.out.println("ip:\n" + builder.toString());
 
-        //  生成 Excel 结果。
-        try (Workbook workbook = new XSSFWorkbook()) {
-            for (int i = 0; i < partitionResultList.size(); i++) {
-                Sheet sheet = workbook.createSheet("Address" + i);
-                sheet.setDefaultColumnWidth(15);
+        Files.writeString(new File(System.getProperty("user.dir") + "/ip.txt").toPath(), builder.toString());
 
-                Row headerRow = sheet.createRow(0);
-
-                Cell headerCell = headerRow.createCell(0);
-                headerCell.setCellValue("Address");
-                headerCell = headerRow.createCell(1);
-                headerCell.setCellValue("Millisecond");
-                List<Result> resultList2 = partitionResultList.get(i);
-
-                for (int j = 0; j < resultList2.size(); j++) {
-                    Row row = sheet.createRow(j + 1);
-
-                    Cell cell = row.createCell(0);
-                    cell.setCellValue(resultList2.get(j).getAddress());
-                    cell = row.createCell(1);
-                    cell.setCellValue(resultList2.get(j).getMillisecond());
-                }
-            }
-
-            try (FileOutputStream outputStream = new FileOutputStream("result.xlsx")) {
-                workbook.write(outputStream);
-            }
-        }
+//        //  拆分结果，每 1_000_000 一张表，XLS 支持 65_536 行和 256 列，XLSX 支持 1_048_576 行和 16_384 列。
+//        List<List<Result>> partitionResultList = ListUtils.partition(resultList, 1_000_000);
+//
+//        //  生成 Excel 结果。
+//        try (Workbook workbook = new XSSFWorkbook()) {
+//            for (int i = 0; i < partitionResultList.size(); i++) {
+//                Sheet sheet = workbook.createSheet("Address" + i);
+//                sheet.setDefaultColumnWidth(15);
+//
+//                Row headerRow = sheet.createRow(0);
+//
+//                Cell headerCell = headerRow.createCell(0);
+//                headerCell.setCellValue("Address");
+//                headerCell = headerRow.createCell(1);
+//                headerCell.setCellValue("Millisecond");
+//                List<Result> resultList2 = partitionResultList.get(i);
+//
+//                for (int j = 0; j < resultList2.size(); j++) {
+//                    Row row = sheet.createRow(j + 1);
+//
+//                    Cell cell = row.createCell(0);
+//                    cell.setCellValue(resultList2.get(j).getAddress());
+//                    cell = row.createCell(1);
+//                    cell.setCellValue(resultList2.get(j).getMillisecond());
+//                }
+//            }
+//
+//            try (FileOutputStream outputStream = new FileOutputStream("result.xlsx")) {
+//                workbook.write(outputStream);
+//            }
+//        }
     }
 }
