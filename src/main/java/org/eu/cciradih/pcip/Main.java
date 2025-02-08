@@ -107,15 +107,15 @@ public class Main {
 
         //  输出延迟最低的 5 个 IP。
         resultList.stream()
-                .limit(5)
+                .limit(10)
                 .forEach(result -> System.out.println("Address: " + result.getAddress() + ", millisecond: " +
                         result.getMillisecond() + "ms."));
 
         StringBuilder builder = new StringBuilder();
-        resultList.stream().limit(10).forEach(t -> builder.append(t).append("\n"));
+        resultList.stream().limit(10).forEach(t -> builder.append(t.getAddress()).append("\n"));
         System.out.println("ip:\n" + builder.toString());
 
-        Files.writeString(new File(System.getProperty("user.dir") + "/ip.txt").toPath(), builder.toString());
+        Files.writeString(new File(System.getProperty("IP_DIR", System.getProperty("user.dir")) + "/ip.txt").toPath(), builder.toString());
 
 //        //  拆分结果，每 1_000_000 一张表，XLS 支持 65_536 行和 256 列，XLSX 支持 1_048_576 行和 16_384 列。
 //        List<List<Result>> partitionResultList = ListUtils.partition(resultList, 1_000_000);
