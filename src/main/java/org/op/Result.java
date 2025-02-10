@@ -1,4 +1,4 @@
-package org.eu.cciradih.pcip;
+package org.op;
 
 public record Result(String address, long millisecond) {
     public String getAddress() {

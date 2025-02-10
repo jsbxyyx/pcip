@@ -1,4 +1,4 @@
-package org.eu.cciradih.pcip;
+package org.op;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -17,18 +17,6 @@ public record Connect(String address, int port, int timeout, String arg) impleme
                     socket.connect(inetSocketAddress, timeout);
                     currentTimeMillis = System.currentTimeMillis() - currentTimeMillis;
                     yield new Result(address, currentTimeMillis);
-                } catch (IOException ignored) {
-                }
-                yield null;
-            }
-            case "warp" -> {
-                try {
-                    long currentTimeMillis = System.currentTimeMillis();
-                    boolean reachable = InetAddress.getByName(address).isReachable(timeout);
-                    currentTimeMillis = System.currentTimeMillis() - currentTimeMillis;
-                    if (reachable) {
-                        yield new Result(address, currentTimeMillis);
-                    }
                 } catch (IOException ignored) {
                 }
                 yield null;
