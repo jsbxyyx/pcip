@@ -32,7 +32,7 @@ public class Main {
                 String[] split = StringUtils.split(decode, "\n");
                 List<String> list = Arrays.stream(split).toList();
 
-                System.out.printf("list : %d : %s\n", list.size(), list);
+                System.out.printf("list : %d\n", list.size());
 
                 yield list.stream()
                         .flatMap(sub -> Arrays.stream(new SubnetUtils(sub)
