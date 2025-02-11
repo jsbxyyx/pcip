@@ -83,7 +83,7 @@ public class Main {
 
         StringBuilder builder = new StringBuilder();
         resultList.stream().limit(10).forEach(t -> builder.append(t.getAddress()).append("\n"));
-        return builder.toString();
+        return StringUtils.trim(builder.toString());
     }
 
 }
