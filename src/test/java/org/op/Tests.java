@@ -11,6 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -39,6 +42,25 @@ public class Tests {
 
         String[] hs = StringUtils.split(str, "\n");
 
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[]{};
+                    }
+                }
+        };
+        SSLContext sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .connectTimeout(5000, TimeUnit.MILLISECONDS)
                 .readTimeout(5000, TimeUnit.MILLISECONDS)
@@ -61,6 +83,8 @@ public class Tests {
                 return SYSTEM.lookup(s);
             }
         });
+        builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
+        builder.setHostnameVerifier$okhttp((hostname, session) -> true);
         OkHttpClient client = builder.build();
 
         Response response = client.newCall(new Request.Builder()
